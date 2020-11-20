@@ -7,6 +7,9 @@ Created on Thu Nov 19 10:47:47 2020
 
 import pandas as pd
 import glob
+import re
+from typing import List
+import string
 
 # 1) Recuperation des fichiers tweets
 # 2) Construction des datasets
@@ -59,6 +62,88 @@ tweets_confinement_2 = pd.read_csv(final_path_conf_2)
 
 
 # 3) Nettoyage du texte, mise en place d'une regex
+
+def load_stop_words() -> List[str]:
+    li = []
+    with open('stopwords_fr.txt', 'r') as f:
+        for line in f:
+            li.append(line[:-1])
+    return li
+
+stopwords_fr = load_stop_words()    
+print(stopwords_fr)
+
 tweets_confinement_1.head()
 
 print(tweets_confinement_1.info())
+
+tweets_confinement_1.location.value_counts()
+
+import emoji
+
+def extract_emojis(s):
+  return ''.join(c for c in s if c in emoji.UNICODE_EMOJI)
+
+s = "🏊‍♀️🥋👟🥎🚴‍♀️⚽️🇫🇷"
+print(extract_emojis(s))
+
+text = "#oiuio #lal bonjour remove me http://oko.com https://sz.fr www.loool.kop"
+def extract_hashtags(s) :
+    li = re.findall(r"#(\w+)", s)
+    print(li)
+
+extract_hashtags(text)
+
+def cleaning_tweet():
+    """
+    # 1] Html tags and attributes (i.e., /<[^>]+>/).
+    # 2] Html character codes (i.e., &…;).
+    # 3] URLs & Whitespaces.
+    
+    Returns
+    -------
+    None.
+
+    """
+    text = "#oiuio #lal bonjour et à êtes remove me http://oko.com https://sz.fr www.loool.kop"
+    
+    # lower text
+    text = text.lower()
+    
+    print(text)
+    # Remove #hastag and @user
+    text = re.sub("([@#][\w_-]+)", '', text)
+    print(text)
+    # Remove URL & whitespace
+    text = re.sub(r'(http|www)\S+', '', text)
+    
+    print(text)
+    # Remove punctuation & tokenize
+    text = [word.strip(string.punctuation) for word in text.split(" ")]
+    print(text)
+    # Remove stopwords
+    stopwords_fr = load_stop_words()
+    text = [word for word in text if word not in stopwords_fr]
+    print(text)
+    
+    
+    print(' '.join(text))
+
+cleaning_tweet()
+
+print(type(tweets_confinement_1))
+
+def prepare_dataset(dataset):
+    dataset['emoji'] = dataset.text.map(lambda x: extract_emojis(x))
+    dataset['hastag'] = dataset.text.map(lambda x: extract_hashtags(x))
+    dataset['text'] = dataset.text.map(lambda x: cleaning_tweet(x))
+    
+    return dataset
+
+tweets_confinement_1_prepared = prepare_dataset(tweets_confinement_1)
+
+
+
+
+
+

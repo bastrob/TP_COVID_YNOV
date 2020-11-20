@@ -5,7 +5,9 @@ Created on Sun Nov 15 21:08:25 2020
 @author: Bast
 """
 
-#https://github.com/florianzemma/CoronavirusAPI-France
+# https://github.com/florianzemma/CoronavirusAPI-France
+# https://www.data.gouv.fr/fr/datasets/chiffres-cles-concernant-lepidemie-de-covid19-en-france/
+# Licence Ouverte / Open Licence version 2.0
 
 import requests 
 import csv
