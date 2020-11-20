@@ -84,17 +84,37 @@ import emoji
 def extract_emojis(s):
   return ''.join(c for c in s if c in emoji.UNICODE_EMOJI)
 
-s = "🏊‍♀️🥋👟🥎🚴‍♀️⚽️🇫🇷"
-print(extract_emojis(s))
+def remove_emoji(string):
+    emoji_pattern = re.compile("["
+                               u"\U0001F600-\U0001F64F"  # emoticons
+                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
+                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                               u"\U00002500-\U00002BEF"  # chinese char
+                               u"\U00002702-\U000027B0"
+                               u"\U00002702-\U000027B0"
+                               u"\U000024C2-\U0001F251"
+                               u"\U0001f926-\U0001f937"
+                               u"\U00010000-\U0010ffff"
+                               u"\u2640-\u2642"
+                               u"\u2600-\u2B55"
+                               u"\u200d"
+                               u"\u23cf"
+                               u"\u23e9"
+                               u"\u231a"
+                               u"\ufe0f"  # dingbats
+                               u"\u3030"
+                               "]+", flags=re.UNICODE)
+    return emoji_pattern.sub(r'', string)
 
 text = "#oiuio #lal bonjour remove me http://oko.com https://sz.fr www.loool.kop"
 def extract_hashtags(s) :
-    li = re.findall(r"#(\w+)", s)
-    print(li)
+    li = re.findall(r"#(\w+)", s.lower())
+    return " ".join(li)
 
 extract_hashtags(text)
 
-def cleaning_tweet():
+def cleaning_tweet(text):
     """
     # 1] Html tags and attributes (i.e., /<[^>]+>/).
     # 2] Html character codes (i.e., &…;).
@@ -105,44 +125,44 @@ def cleaning_tweet():
     None.
 
     """
-    text = "#oiuio #lal bonjour et à êtes remove me http://oko.com https://sz.fr www.loool.kop"
-    
+
     # lower text
     text = text.lower()
     
-    print(text)
+    # remove emojis:
+    text = remove_emoji(text)
+        
     # Remove #hastag and @user
     text = re.sub("([@#][\w_-]+)", '', text)
-    print(text)
+
     # Remove URL & whitespace
     text = re.sub(r'(http|www)\S+', '', text)
     
-    print(text)
     # Remove punctuation & tokenize
     text = [word.strip(string.punctuation) for word in text.split(" ")]
-    print(text)
+
     # Remove stopwords
     stopwords_fr = load_stop_words()
     text = [word for word in text if word not in stopwords_fr]
-    print(text)
+
     
     
-    print(' '.join(text))
+    return " ".join(text).strip()
 
-cleaning_tweet()
 
-print(type(tweets_confinement_1))
-
-def prepare_dataset(dataset):
-    dataset['emoji'] = dataset.text.map(lambda x: extract_emojis(x))
-    dataset['hastag'] = dataset.text.map(lambda x: extract_hashtags(x))
-    dataset['text'] = dataset.text.map(lambda x: cleaning_tweet(x))
+def prepare_dataset(dataset, path_to_save):
+    dataset = dataset.drop_duplicates(subset="tweet_id")
     
+    # Remove the: 
+    # A value is trying to be set on a copy of a slice from a DataFrame. Try using .loc[row_indexer,col_indexer] = value instead
+    dataset.loc[:,'emoji'] = dataset.text.map(lambda x: extract_emojis(x))
+    dataset.loc[:, 'hastag'] = dataset.text.map(lambda x: extract_hashtags(x))
+    dataset.loc[:, 'text'] = dataset.text.map(lambda x: cleaning_tweet(x))
+    save_csv(dataset, path_to_save)
     return dataset
 
-tweets_confinement_1_prepared = prepare_dataset(tweets_confinement_1)
-
-
+tweets_confinement_1_prepared = prepare_dataset(tweets_confinement_1, final_path_conf_1)
+tweets_confinement_2_prepared = prepare_dataset(tweets_confinement_2, final_path_conf_2)
 
 
 

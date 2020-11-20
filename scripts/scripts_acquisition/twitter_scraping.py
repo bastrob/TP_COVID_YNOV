@@ -69,6 +69,8 @@ twitter = Twython(CONSUMER_KEY,
                   ACCESS_TOKEN,
                   ACCESS_TOKEN_SECRET)
 
+# r=twitter.request("https://api.twitter.com/1.1/statuses/retweets/1243224917887287304.json")
+# print(r)
 
 tweet_count = 0
 tracklist = ['#COVID19', '#COVID-19']
