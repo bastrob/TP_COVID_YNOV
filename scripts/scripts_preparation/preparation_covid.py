@@ -7,6 +7,8 @@ Created on Thu Nov 19 10:48:09 2020
 
 import pandas as pd
 import glob
+import requests
+import numpy as np
 
 # 1) Récuperer l'ensemble des fichiers dans departements
 # 2) Construction d'un dataset unique
