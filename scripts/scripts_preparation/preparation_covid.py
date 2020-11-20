@@ -103,11 +103,18 @@ def set_region(x):
 
 dataset['region'] = dataset.departement.map(lambda x: set_region(x))
 
+
+#Ajout des données de géolocalisations de chaques region avec l'API nominatim(OpenStreetMap)
+
+regions = dataset['region'].unique()
+dataset.insert(len(dataset.columns),'lat','')
+dataset.insert(len(dataset.columns),'lon','')
+
+for i in regions :
+    response = requests.get("https://nominatim.openstreetmap.org/search/%s?format=json&addressdetails=0&limit=1&polygon_svg=1&countrycodes=fr&extratags=1&linked_place=state" % i)
+    region = pd.json_normalize(response.json())
+    dataset['lat'] = np.where(dataset['region']== i, region['lat'].values, dataset['lat'])
+    dataset['lon'] = np.where(dataset['region']== i, region['lon'].values, dataset['lon'])
+
 save_csv(dataset)
-
-
-
-
-# 4) Recherche coordonnées
-dataset['region'].unique()
 
