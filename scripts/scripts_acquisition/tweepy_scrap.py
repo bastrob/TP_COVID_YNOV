@@ -119,10 +119,10 @@ filename_csv = 'tweets_dataset_'
 filename_txt = 'tweets_json_'
 format_csv = '.csv'
 format_txt = '.txt'
-count_dataset = 13
+count_dataset = 15
 
 
-file1 = open("../../LockdownDays/df_idsj25.txt", 'r') 
+file1 = open("../../LockdownDays/df_idsj27.txt", 'r') 
 Lines = file1.readlines() 
 
 full_csv_path = r'..\..\datasets_raw\tweets_datasets\tweets_confinement_1\tweets_csv\{}{}{}'.format(filename_csv, count_dataset, format_csv)
