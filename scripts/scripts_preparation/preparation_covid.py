@@ -103,6 +103,29 @@ regions_france = {"Auvergne-Rhône-Alpes" : ["Ain", "Allier", "Ardèche", "Canta
                   "Provence-Alpes-Côte d'Azur" : ["Alpes-de-Haute-Provence", "Hautes-Alpes", "Alpes-Maritimes", "Bouches-du-Rhône", "Var", "Vaucluse"]
                   }
 
+departements_population = { "Ain": 631877, "Aisne": 538659, "Allier": 341613, "Alpes-de-Haute-Provence": 161799,
+                           "Hautes-Alpes": 140916, "Alpes-Maritimes": 1080440, "Ardèche": 324209, "Ardennes": 277752,
+                           "Ariège": 152499, "Aube": 309056, "Aude": 366957, "Aveyron": 279169, "Bouches-du-Rhône": 2016622,
+                           "Calvados": 693579, "Cantal": 146219, "Charente": 353613, "Charente-Maritime": 639938,
+                           "Cher": 308992, "Corrèze": 241871, "Corse-du-Sud": 152730, "Haute-Corse": 174553, 
+                           "Côte-d'Or": 533147, "Côtes-d'Armor": 598357, "Creuse": 120365, "Dordogne": 415417,
+                           "Doubs": 536959 , "Drôme": 504637, "Eure": 601948, "Eure-et-Loir": 434035, "Finistère": 907796,
+                           "Gard": 738189, "Haute-Garonne": 1335103, "Gers": 190932, "Gironde": 1548478, "Hérault": 1120190,
+                           "Ille-et-Vilaine": 1042884, "Indre": 224200, "Indre-et-Loire": 604966, "Isère": 1251060,
+                           "Jura": 260587, "Landes": 403234, "Loir-et-Cher": 333050, "Loire": 759411, "Haute-Loire": 227034,
+                           "Loire-Atlantique": 1365227, "Loiret": 673349, "Lot": 173400, "Lot-et-Garonne": 333417,
+                           "Lozère": 76309, "Maine-et-Loire": 810186, "Manche": 499287, "Marne": 572293, "Haute-Marne": 179154,
+                           "Mayenne": 307940, "Meurthe-et-Moselle": 734403, "Meuse": 190626, "Morbihan": 744813, "Moselle": 1044486, 
+                           "Nièvre": 211747, "Nord": 2605238, "Oise": 821552, "Orne": 286618, "Pas-de-Calais": 1472648, "Puy-de-Dôme": 647501,
+                           "Pyrénées-Atlantiques": 670032, "Hautes-Pyrénées": 228582, "Pyrénées-Orientales": 471038,
+                           "Bas-Rhin": 1116658, "Haut-Rhin": 762607, "Rhône": 1821995, "Haute-Saône": 237706, "Saône-et-Loire": 555408,
+                           "Sarthe": 568445, "Savoie": 428204, "Haute-Savoie": 793938, "Paris": 2206488, "Seine-Maritime": 1257699, 
+                           "Seine-et-Marne": 1390121, "Yvelines": 1427291, "Deux-Sèvres": 374435, "Somme": 571879, "Tarn": 386543,
+                           "Tarn-et-Garonne": 255274, "Var": 1048652, "Vaucluse": 557548, "Vendée": 666714, "Vienne": 434887, "Haute-Vienne": 375795,
+                           "Vosges": 372016, "Yonne": 340903, "Territoire de Belfort": 144483, "Essonne": 1276233, "Hauts-de-Seine": 1601569,
+                           "Seine-Saint-Denis": 1592663, "Val-de-Marne": 1372389, "Val-d'Oise": 1215390                    
+                           }
+
 
 def set_region(x: str) -> str:
     #print(row.departement)
@@ -143,14 +166,25 @@ def create_geodataframe(dataset: pd.DataFrame) -> gpd.GeoDataFrame:
     geodataframe.crs = {'init': 'epsg:4326'}
     return geodataframe
 
+def set_population(x: str) -> int:
+    population = departements_population.get(x, default=0)
+    
+    return population
+
+def create_population(dataset: pd.DataFrame) -> pd.DataFrame:
+    dataset['population'] = dataset.departement.map(lambda x: set_population(x))
+     
 
 def preparation_pipeline():
     concat_dataset()
     dataset = pd.read_csv(final_path)
     dataset = create_region(dataset)
     dataset = create_lat_long(dataset)
+    dataset = create_population(dataset)
     save_csv(dataset)
     load_csv(final_path)
+    
+    
     
 
 
