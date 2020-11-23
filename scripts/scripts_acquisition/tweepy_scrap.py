@@ -101,17 +101,17 @@ def on_status(filename_csv: str, status: tweepy.Status):
         # print(status.user.location)
 
 
-list_id=['1245811349936058379,']       
-for line in list_id:
-    try:
-        status = api.get_status(line, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, tweet_mode="extended")
+# list_id=['1245811349936058379,']       
+# for line in list_id:
+#     try:
+#         status = api.get_status(line, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, tweet_mode="extended")
         
-    except tweepy.error.TweepError as err:
-        print ("Caught TweepError: %s" % (err))
-        print('Traitement Line Error: ', line)
-        continue
-    print('Traitement Line: ', line)
-    print(status._json)
+#     except tweepy.error.TweepError as err:
+#         print ("Caught TweepError: %s" % (err))
+#         print('Traitement Line Error: ', line)
+#         continue
+#     print('Traitement Line: ', line)
+#     print(status._json)
 
 
 # A chaque changement de fichier: création d'un nouveau csv, et création d'un nouveau json
@@ -120,10 +120,10 @@ filename_csv = 'tweets_dataset_'
 filename_txt = 'tweets_json_'
 format_csv = '.csv'
 format_txt = '.txt'
-count_dataset = 16
+count_dataset = 23
 
 
-file1 = open("../../LockdownDays/df_idsj29.txt", 'r') 
+file1 = open("../../LockdownDays/df_idsj3941.txt", 'r') 
 Lines = file1.readlines() 
 
 full_csv_path = r'..\..\datasets_raw\tweets_datasets\tweets_confinement_1\tweets_csv\{}{}{}'.format(filename_csv, count_dataset, format_csv)

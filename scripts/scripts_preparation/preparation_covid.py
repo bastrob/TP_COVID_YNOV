@@ -9,6 +9,8 @@ import pandas as pd
 import glob
 import requests
 import numpy as np
+import geopandas as gpd
+
 
 # 1) Récuperer l'ensemble des fichiers dans departements
 # 2) Construction d'un dataset unique
@@ -25,30 +27,37 @@ import numpy as np
 
 final_path = r'..\..\datasets_cleaned\dataset_gouv_prepared.csv'
 
-def concat_dataset():
+def concat_dataset() -> pd.DataFrame:
     path = r'..\..\datasets_raw\covid_departements_datasets' # use your path
+    print(path)
     all_files = glob.glob(path + "/*.csv")
     li = []
-    
+    print(all_files)
     for filename in all_files:
         df = pd.read_csv(filename)
         df.columns = ['departement', 'date', 'hospitalises', 'reanimations', 'nvx_hospitalises', 'nvlles_reanimations', 'gueris', 'deces']
         li.append(df)
 
  
-    frame = pd.concat(li, ignore_index=True)
-    save_csv(frame)
+    dataset = pd.concat(li, ignore_index=True)
 
-def save_csv(dataset):
+    #save_csv(dataset)
+    return dataset
+
+def save_csv(dataset: pd.DataFrame):
     dataset.to_csv(final_path, index = False, header=True)
+
+def load_csv(path: str) -> pd.DataFrame:
+    dataset = pd.read_csv(path)
+    return dataset
  
-concat_dataset()
+#concat_dataset()
 
 
 
-dataset = pd.read_csv(final_path)
+#dataset = pd.read_csv(final_path)
 
-print(dataset.head())
+#print(dataset.head())
 
 # 3) Ajout de la colonne des Régions https://www.regions-et-departements.fr/regions-francaises
 
@@ -95,7 +104,7 @@ regions_france = {"Auvergne-Rhône-Alpes" : ["Ain", "Allier", "Ardèche", "Canta
                   }
 
 
-def set_region(x):
+def set_region(x: str) -> str:
     #print(row.departement)
     region = ""
     for key, value in regions_france.items():
@@ -103,20 +112,46 @@ def set_region(x):
             region = key
     return region
 
-dataset['region'] = dataset.departement.map(lambda x: set_region(x))
+def create_region(dataset: pd.DataFrame) -> pd.DataFrame:
+    dataset['region'] = dataset.departement.map(lambda x: set_region(x))
+    return dataset
 
 
 #Ajout des données de géolocalisations de chaques region avec l'API nominatim(OpenStreetMap)
 
-regions = dataset['region'].unique()
-dataset.insert(len(dataset.columns),'lat','')
-dataset.insert(len(dataset.columns),'lon','')
+def create_lat_long(dataset: pd.DataFrame) -> pd.DataFrame:
+    regions = dataset['region'].unique()
+    dataset.insert(len(dataset.columns),'lat','')
+    dataset.insert(len(dataset.columns),'lon','')
 
-for i in regions :
-    response = requests.get("https://nominatim.openstreetmap.org/search/%s?format=json&addressdetails=0&limit=1&polygon_svg=1&countrycodes=fr&extratags=1&linked_place=state" % i)
-    region = pd.json_normalize(response.json())
-    dataset['lat'] = np.where(dataset['region']== i, region['lat'].values, dataset['lat'])
-    dataset['lon'] = np.where(dataset['region']== i, region['lon'].values, dataset['lon'])
+    for i in regions :
+        response = requests.get("https://nominatim.openstreetmap.org/search/%s?format=json&addressdetails=0&limit=1&polygon_svg=1&countrycodes=fr&extratags=1&linked_place=state" % i)
+        region = pd.json_normalize(response.json())
+        dataset['lat'] = np.where(dataset['region']== i, region['lat'].values, dataset['lat'])
+        dataset['lon'] = np.where(dataset['region']== i, region['lon'].values, dataset['lon'])
 
-save_csv(dataset)
+    return dataset
+
+
+#dataset = pd.read_csv(final_path)
+
+def create_geodataframe(dataset: pd.DataFrame) -> gpd.GeoDataFrame:
+    # Convert the DataFrame to a GeoDataFrame
+    geodataframe = gpd.GeoDataFrame(dataset, geometry=gpd.points_from_xy(dataset.lat, dataset.lon))
+    
+    # Set the coordinate reference system (CRS) to EPSG 4326
+    geodataframe.crs = {'init': 'epsg:4326'}
+    return geodataframe
+
+
+def preparation_pipeline():
+    concat_dataset()
+    dataset = pd.read_csv(final_path)
+    dataset = create_region(dataset)
+    dataset = create_lat_long(dataset)
+    save_csv(dataset)
+    load_csv(final_path)
+    
+
+
 
