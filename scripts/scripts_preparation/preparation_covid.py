@@ -126,6 +126,102 @@ departements_population = { "Ain": 631877, "Aisne": 538659, "Allier": 341613, "A
                            "Seine-Saint-Denis": 1592663, "Val-de-Marne": 1372389, "Val-d'Oise": 1215390                    
                            }
 
+codes_departements = {"01" : "Ain",
+                      "02" : "Aisne",
+                      "03" : "Allier",
+                      "04" : "Alpes-de-Haute-Provence",
+                      "05" : "Hautes-Alpes",
+                      "06" : "Alpes-Maritimes",
+                      "07" : "Ardèche",
+                      "08" : "Ardennes",
+                      "09" : "Ariège",
+                      "10" : "Aube",
+                      "11" : "Aude",
+                      "12" : "Aveyron",
+                      "13" : "Bouches-du-Rhône",
+                      "14" : "Calvados",
+                      "15" : "Cantal",
+                      "16" : "Charente",
+                      "17" : "Charente-Maritime",
+                      "18" : "Cher",
+                      "19" : "Corrèze",
+                      "2A" : "Corse-du-Sud",
+                      "2B" : "Haute-Corse",
+                      "21" : "Côte-d'Or",
+                      "22" : "Côtes d'Armor",
+                      "23" : "Creuse",
+                      "24" : "Dordogne",
+                      "25" : "Doubs",
+                      "26" : "Drôme",
+                      "27" : "Eure",
+                      "28" : "Eure-et-Loir",
+                      "29" : "Finistère",
+                      "30" : "Gard",
+                      "31" : "Haute-Garonne",
+                      "32" : "Gers",
+                      "33" : "Gironde",
+                      "34" : "Hérault",
+                      "35" : "Ille-et-Vilaine",
+                      "36" : "Indre",
+                      "37" : "Indre-et-Loire",
+                      "38" : "Isère",
+                      "39" : "Jura",
+                      "40" : "Landes",
+                      "41" : "Loir-et-Cher",
+                      "42" : "Loire",
+                      "43" : "Haute-Loire",
+                      "44" : "Loire-Atlantique",
+                      "45" : "Loiret",
+                      "46" : "Lot",
+                      "47" : "Lot-et-Garonne",
+                      "48" : "Lozère",
+                      "49" : "Maine-et-Loire",
+                      "50" : "Manche",
+                      "51" : "Marne",
+                      "52" : "Haute-Marne",
+                      "53" : "Mayenne",
+                      "54" : "Meurthe-et-Moselle",
+                      "55" : "Meuse",
+                      "56" : "Morbihan",
+                      "57" : "Moselle",
+                      "58" : "Nièvre",
+                      "59" : "Nord",
+                      "60" : "Oise",
+                      "61" : "Orne",
+                      "62" : "Pas-de-Calais",
+                      "63" : "Puy-de-Dôme",
+                      "64" : "Pyrénées-Atlantiques",
+                      "65" : "Hautes-Pyrénées",
+                      "66" : "Pyrénées-Orientales",
+                      "67" : "Bas-Rhin",
+                      "68" : "Haut-Rhin",
+                      "69" : "Rhône",
+                      "70" : "Haute-Saône",
+                      "71" : "Saône-et-Loire",
+                      "72" : "Sarthe",
+                      "73" : "Savoie",
+                      "74" : "Haute-Savoie",
+                      "75" : "Paris",
+                      "76" : "Seine-Maritime",
+                      "77" : "Seine-et-Marne",
+                      "78" : "Yvelines",
+                      "79" : "Deux-Sèvres",
+                      "80" : "Somme",
+                      "81" : "Tarn",
+                      "82" : "Tarn-et-Garonne",
+                      "83" : "Var",
+                      "84" : "Vaucluse",
+                      "85" : "Vendée",
+                      "86" : "Vienne",
+                      "87" : "Haute-Vienne",
+                      "88" : "Vosges",
+                      "89" : "Yonne",
+                      "90" : "Territoire-de-Belfort",
+                      "91" : "Essonne",
+                      "92" : "Hauts-de-Seine",
+                      "93" : "Seine-Saint-Denis",
+                      "94" : "Val-de-Marne",
+                      "95" : "Val-D'Oise"}
 
 def set_region(x: str) -> str:
     #print(row.departement)
@@ -135,11 +231,22 @@ def set_region(x: str) -> str:
             region = key
     return region
 
+def set_codes(x: str) -> str:
+    #print(row.departement)
+    code = ""
+    for key, value in codes_departements.items():
+        if x in value:
+            code = key
+    return code
+
 def create_region(dataset: pd.DataFrame) -> pd.DataFrame:
     dataset['region'] = dataset.departement.map(lambda x: set_region(x))
     return dataset
-
-
+    
+def create_code(dataset: pd.DataFrame) -> pd.DataFrame:
+    dataset['code'] = dataset.departement.map(lambda x: set_codes(x))
+    return dataset
+  
 #Ajout des données de géolocalisations de chaques region avec l'API nominatim(OpenStreetMap)
 
 def create_lat_long(dataset: pd.DataFrame) -> pd.DataFrame:
@@ -155,6 +262,19 @@ def create_lat_long(dataset: pd.DataFrame) -> pd.DataFrame:
 
     return dataset
 
+def create_lat_long_departement(dataset: pd.DataFrame) -> pd.DataFrame:
+    dataset.insert(len(dataset.columns),'lat_d','')
+    dataset.insert(len(dataset.columns),'lon_d','')
+    codes = dataset['code'].unique()
+    codes = filter(None, codes)
+
+    for j in codes :
+        response = requests.get("https://nominatim.openstreetmap.org/search/%s?format=json&addressdetails=0&limit=1&polygon_svg=1&countrycodes=fr&extratags=1&border_type=departement" % j)
+        departement = pd.json_normalize(response.json())
+        dataset['lat_d'] = np.where(dataset['code']== j, departement['lat'].values, dataset['lat_d'])
+        dataset['lon_d'] = np.where(dataset['code']== j, departement['lon'].values, dataset['lon_d'])
+    
+    return dataset
 
 #dataset = pd.read_csv(final_path)
 
@@ -180,6 +300,8 @@ def preparation_pipeline():
     dataset = pd.read_csv(final_path)
     dataset = create_region(dataset)
     dataset = create_lat_long(dataset)
+    dataset = create_code(dataset)
+    dataset = create_lat_long_departement(dataset)
     dataset = create_population(dataset)
     save_csv(dataset)
     load_csv(final_path)
