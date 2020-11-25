@@ -13,6 +13,10 @@ from folium.plugins import MarkerCluster
 import plotly.express as px
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+from datetime import datetime
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import seaborn as sns
 
 
 def load_csv(path: str) -> pd.DataFrame:
@@ -193,3 +197,85 @@ def show_wordcloud(data, title):
     plt.show()
           
 
+def plot_evenements_majeurs(df: pd.DataFrame):
+    color = sns.color_palette()
+    sns.set_style('darkgrid')
+    
+    f, ax = plt.subplots(figsize = (15, 10))
+    ax = sns.lineplot(x="date", y="hospitalises", data=df, ci=None, estimator=sum, ax=ax);
+    
+    #Annotation des évènements majeurs
+    
+    plt.annotate('stade 2 28-02',
+                xy=('2020-02-28', 0),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('premier confinement 14-03',
+                xy=('2020-03-14', 12),
+                xycoords='data',
+                xytext=(0, 100),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('prolongement du confinement 13-04',
+                xy=('2020-04-13', 30580),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('debut du déconfinement progressif 11-05',
+                xy=('2020-05-11', 21283),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('seconde phase du déconfinement 02-06',
+                xy=('2020-06-02', 13352),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('troisième phase du déconfinement 22-06',
+                xy=('2020-06-22', 9128),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('port du masque dans les entreprises 09-01',
+                xy=('2020-09-01', 4277),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.annotate('second confinement 01-11',
+                xy=('2020-11-01', 23253),
+                xycoords='data',
+                xytext=(0, 50),
+                textcoords='offset points',
+                arrowprops=dict(arrowstyle='-', color='black'),
+                ha='center',
+                va='center')
+    
+    plt.show()
