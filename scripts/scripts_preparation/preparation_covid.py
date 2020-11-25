@@ -47,14 +47,6 @@ def concat_dataset() -> pd.DataFrame:
 def save_csv(dataset: pd.DataFrame):
     dataset.to_csv(final_path, index = False, header=True)
 
-def load_csv(path: str) -> pd.DataFrame:
-    dataset = pd.read_csv(path)
-    return dataset
- 
-#concat_dataset()
-
-
-
 #dataset = pd.read_csv(final_path)
 
 #print(dataset.head())
@@ -239,6 +231,10 @@ def set_codes(x: str) -> str:
             code = key
     return code
 
+def set_population(x: str) -> int:
+    population = departements_population.get(x, 0)
+    return population
+
 def create_region(dataset: pd.DataFrame) -> pd.DataFrame:
     dataset['region'] = dataset.departement.map(lambda x: set_region(x))
     return dataset
@@ -246,8 +242,12 @@ def create_region(dataset: pd.DataFrame) -> pd.DataFrame:
 def create_code(dataset: pd.DataFrame) -> pd.DataFrame:
     dataset['code'] = dataset.departement.map(lambda x: set_codes(x))
     return dataset
+
+def create_population(dataset: pd.DataFrame) -> pd.DataFrame:
+    dataset['population'] = dataset.departement.map(lambda x: set_population(x))
+    return dataset
   
-#Ajout des données de géolocalisations de chaques region avec l'API nominatim(OpenStreetMap)
+#Ajout des données de géolocalisations de chaques regions avec l'API nominatim(OpenStreetMap)
 
 def create_lat_long(dataset: pd.DataFrame) -> pd.DataFrame:
     regions = dataset['region'].unique()
@@ -286,28 +286,33 @@ def create_geodataframe(dataset: pd.DataFrame) -> gpd.GeoDataFrame:
     geodataframe.crs = {'init': 'epsg:4326'}
     return geodataframe
 
-def set_population(x: str) -> int:
-    population = departements_population.get(x, default=0)
-    
-    return population
-
-def create_population(dataset: pd.DataFrame) -> pd.DataFrame:
-    dataset['population'] = dataset.departement.map(lambda x: set_population(x))
-     
 
 def preparation_pipeline():
-    concat_dataset()
-    dataset = pd.read_csv(final_path)
+    dataset = concat_dataset()
+    #dataset = pd.read_csv(final_path)
     dataset = create_region(dataset)
     dataset = create_lat_long(dataset)
     dataset = create_code(dataset)
     dataset = create_lat_long_departement(dataset)
     dataset = create_population(dataset)
     save_csv(dataset)
-    load_csv(final_path)
     
     
-    
+dataset = concat_dataset()
+#dataset = pd.read_csv(final_path)
+dataset = create_region(dataset)
 
+dataset = create_lat_long(dataset)
+
+dataset = create_code(dataset)
+
+dataset = create_lat_long_departement(dataset)
+
+dataset = create_population(dataset)
+dataset.head()
+
+print(dataset)
+
+preparation_pipeline()
 
 
