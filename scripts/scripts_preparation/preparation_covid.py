@@ -10,6 +10,7 @@ import glob
 import requests
 import numpy as np
 import geopandas as gpd
+from collections import defaultdict 
 
 
 # 1) Récuperer l'ensemble des fichiers dans departements
@@ -29,7 +30,6 @@ final_path = r'..\..\datasets_cleaned\dataset_gouv_prepared.csv'
 
 def concat_dataset() -> pd.DataFrame:
     path = r'..\..\datasets_raw\covid_departements_datasets' # use your path
-    print(path)
     all_files = glob.glob(path + "/*.csv")
     li = []
     print(all_files)
@@ -231,9 +231,9 @@ def set_codes(x: str) -> str:
             code = key
     return code
 
-def set_population(x: str) -> int:
-    population = departements_population.get(x, 0)
-    return population
+def set_population_departement(x: str) -> int:
+    population_departement = departements_population.get(x)
+    return population_departement
 
 def create_region(dataset: pd.DataFrame) -> pd.DataFrame:
     dataset['region'] = dataset.departement.map(lambda x: set_region(x))
@@ -243,10 +243,22 @@ def create_code(dataset: pd.DataFrame) -> pd.DataFrame:
     dataset['code'] = dataset.departement.map(lambda x: set_codes(x))
     return dataset
 
-def create_population(dataset: pd.DataFrame) -> pd.DataFrame:
-    dataset['population'] = dataset.departement.map(lambda x: set_population(x))
+def create_population_departement(dataset: pd.DataFrame) -> pd.DataFrame:
+    dataset['population_departement'] = dataset.departement.map(lambda x: set_population_departement(x))
     return dataset
-  
+ 
+def create_population_region(dataset: pd.DataFrame) -> pd.DataFrame:
+    regions = dataset['region'].unique()
+    regions_population = defaultdict(int)
+    for region in regions:
+       dp_region = regions_france.get(region)
+       for departement in dp_region:
+           departement_population = departements_population.get(departement)
+           regions_population[region] += departement_population
+    
+    dataset['population_region'] = dataset.region.map(lambda x: regions_population.get(x))
+    return dataset    
+ 
 #Ajout des données de géolocalisations de chaques regions avec l'API nominatim(OpenStreetMap)
 
 def create_lat_long(dataset: pd.DataFrame) -> pd.DataFrame:
@@ -294,25 +306,12 @@ def preparation_pipeline():
     dataset = create_lat_long(dataset)
     dataset = create_code(dataset)
     dataset = create_lat_long_departement(dataset)
-    dataset = create_population(dataset)
+    dataset = create_population_departement(dataset)
+    dataset = create_population_region(dataset)
     save_csv(dataset)
     
     
-dataset = concat_dataset()
-#dataset = pd.read_csv(final_path)
-dataset = create_region(dataset)
-
-dataset = create_lat_long(dataset)
-
-dataset = create_code(dataset)
-
-dataset = create_lat_long_departement(dataset)
-
-dataset = create_population(dataset)
-dataset.head()
-
-print(dataset)
-
 preparation_pipeline()
+
 
 

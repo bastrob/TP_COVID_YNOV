@@ -10,6 +10,7 @@ import glob
 import re
 from typing import List
 import string
+import emoji
 
 # 1) Recuperation des fichiers tweets
 # 2) Construction des datasets
@@ -54,10 +55,10 @@ def save_csv(dataset, path_to_save):
 concat_dataset(path_tweet_confinement_1, final_path_conf_1)
 concat_dataset(path_tweet_confinement_2, final_path_conf_2)
 
-# tweets premier confinement
+# # tweets premier confinement
 tweets_confinement_1 = pd.read_csv(final_path_conf_1)
 
-# tweets deuxieme confinement
+# # tweets deuxieme confinement
 tweets_confinement_2 = pd.read_csv(final_path_conf_2)
 
 
@@ -71,15 +72,8 @@ def load_stop_words() -> List[str]:
     return li
 
 stopwords_fr = load_stop_words()    
-print(stopwords_fr)
 
-tweets_confinement_1.head()
 
-print(tweets_confinement_1.info())
-
-tweets_confinement_1.location.value_counts()
-
-import emoji
 
 def extract_emojis(s):
   return ''.join(c for c in s if c in emoji.UNICODE_EMOJI)
@@ -143,17 +137,24 @@ def cleaning_tweet(text):
 
     # Remove stopwords
     stopwords_fr = load_stop_words()
-    text = [word for word in text if word not in stopwords_fr]
+    text = [word for word in text if word not in stopwords_fr and len(word) > 2]
 
     
     
     return " ".join(text).strip()
 
-
-def prepare_dataset(dataset, path_to_save):
-    dataset = dataset.drop_duplicates(subset="tweet_id")
+def create_important_tweet_col_and_remove_duplicates(dataset: pd.DataFrame) -> pd.DataFrame:
+    # counting the duplicates 
+    dups = dataset.pivot_table(index = ['tweet_id'], aggfunc ='size') 
     
-    # Remove the: 
+    dataset = dataset.drop_duplicates(subset="tweet_id")
+    dataset.reset_index(drop=True, inplace=True)
+    dataset['important_tweet'] = dataset.apply(lambda row: dups[row.tweet_id], axis= 1)
+    return dataset
+
+def prepare_dataset(dataset: pd.DataFrame, path_to_save):
+    dataset = create_important_tweet_col_and_remove_duplicates(dataset)
+    
     # A value is trying to be set on a copy of a slice from a DataFrame. Try using .loc[row_indexer,col_indexer] = value instead
     dataset.loc[:,'emoji'] = dataset.text.map(lambda x: extract_emojis(x))
     dataset.loc[:, 'hastag'] = dataset.text.map(lambda x: extract_hashtags(x))

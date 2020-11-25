@@ -8,8 +8,10 @@ Created on Tue Nov 24 22:06:21 2020
 import pandas as pd
 import geopandas as gpd
 import folium
-from folium import Choropleth, Circle, Marker
-from folium.plugins import HeatMap, MarkerCluster
+from folium import Choropleth, Marker
+from folium.plugins import MarkerCluster
+import plotly.express as px
+
 
 def load_csv(path: str) -> pd.DataFrame:
     dataset = pd.read_csv(path)
@@ -79,11 +81,14 @@ def create_map_france(dataset: gpd.GeoDataFrame, date_str: str, col_name: str):
     m.add_child(mc)
 
     # Display the map
-    m
+    return m
     
 
 def load_contour_region() -> gpd.GeoDataFrame:
     return gpd.read_file('../regions/regions-20180101.shp')
+
+def load_contour_departement() -> gpd.GeoDataFrame:
+    return gpd.read_file('../departements/departements-20180101.shp')
 
 def transform_contour_region_to_series() -> pd.Series:
     contour_region = load_contour_region()
@@ -130,6 +135,41 @@ def create_map_france_2(dataset: gpd.GeoDataFrame, date_str: str, col_name: str)
                ).add_to(m)
 
     # Display the map
-    m
+    return m
+
+def suppression_date_weird(dataset: pd.DataFrame) -> pd.DataFrame:
+    weird_date = ['2020-02-29', '2020-03-01', '2020-03-02',
+       '2020-03-13', '2020-02-28', '2020-01-24', '2020-01-25',
+       '2020-01-26', '2020-01-27', '2020-01-28', '2020-01-29',
+       '2020-01-30', '2020-01-31', '2020-02-03', '2020-02-05',
+       '2020-02-06', '2020-02-07', '2020-02-08', '2020-02-10',
+       '2020-02-11', '2020-02-12', '2020-02-20', '2020-02-24',
+       '2020-02-25', '2020-02-27', '2020-02-26', '2020-03-03',
+       '2020-03-04', '2020-03-05']
     
+    return dataset[~dataset['date'].isin(weird_date)]
+
+def essai_contour_region(geodataframe: gpd.GeoDataFrame):
+    contour_region = load_contour_region()
+    # Define a base map with county boundaries
+    ax = contour_region.plot(figsize=(10,10), color='none', edgecolor='gainsboro', zorder=3)
+
+    # Add wild lands, campsites, and foot trails to the base map
+    return geodataframe.plot(color='lightgreen', ax=ax)
     
+def essai_contour_departement(geodataframe: gpd.GeoDataFrame):
+    contour_departement = load_contour_departement()
+    # Define a base map with county boundaries
+    ax = contour_departement.plot(figsize=(10,10), color='none', edgecolor='gainsboro', zorder=3)
+
+    # Add wild lands, campsites, and foot trails to the base map
+    return geodataframe.plot(color='lightgreen', ax=ax)    
+
+
+def create_interactive_bar_chart(dataset: pd.DataFrame, col_choice: str):
+    dataset.sort_values("date", axis = 0, ascending = True, 
+                  inplace = True)
+    # Le mieux serait d'ajouter une colonne mois plutôt que la date jour/jour
+    fig1 = px.bar(dataset, x="region", y=col_choice, color="region",
+                 animation_frame="date", animation_group="departement", range_y=[0,15000])
+    fig1.show()
