@@ -154,7 +154,7 @@ def create_important_tweet_col_and_remove_duplicates(dataset: pd.DataFrame) -> p
 
 def prepare_dataset(dataset: pd.DataFrame, path_to_save):
     dataset = create_important_tweet_col_and_remove_duplicates(dataset)
-    
+    dataset['original_text'] = dataset.text.map(lambda x: x)
     # A value is trying to be set on a copy of a slice from a DataFrame. Try using .loc[row_indexer,col_indexer] = value instead
     dataset.loc[:,'emoji'] = dataset.text.map(lambda x: extract_emojis(x))
     dataset.loc[:, 'hastag'] = dataset.text.map(lambda x: extract_hashtags(x))

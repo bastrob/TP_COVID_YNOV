@@ -11,6 +11,8 @@ import folium
 from folium import Choropleth, Marker
 from folium.plugins import MarkerCluster
 import plotly.express as px
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 
 def load_csv(path: str) -> pd.DataFrame:
@@ -173,3 +175,21 @@ def create_interactive_bar_chart(dataset: pd.DataFrame, col_choice: str):
     fig1 = px.bar(dataset, x="region", y=col_choice, color="region",
                  animation_frame="date", animation_group="departement", range_y=[0,15000])
     fig1.show()
+
+
+# Create show_wordcloud method:
+def show_wordcloud(data, title):
+    text = ' '.join(data['text'].astype(str).tolist())
+           
+# Create the wordcloud object
+    fig_wordcloud = WordCloud(background_color='lightgrey',
+                            colormap='viridis', width=800, height=600).generate(text)
+    
+# Display the generated image:
+    plt.figure(figsize=(10,7), frameon=True)
+    plt.imshow(fig_wordcloud)
+    plt.axis('off')
+    plt.title(title, fontsize=20)
+    plt.show()
+          
+
