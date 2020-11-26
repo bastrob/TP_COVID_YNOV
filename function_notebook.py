@@ -279,3 +279,22 @@ def plot_evenements_majeurs(df: pd.DataFrame):
                 va='center')
     
     plt.show()
+
+def calcul_pourcentage_population(dataset: pd.DataFrame, date: str, col_choice: str) -> pd.DataFrame :
+    group_region = dataset.groupby(['region', 'date', 'population_region'])[col_choice].sum()
+    my_dict = {}
+    region = []
+    population_region = []
+    pourcentage = []
+    for idx, row in group_region.iteritems():
+        if idx[1] == date:
+            region.append(idx[0])
+            population_region.append(idx[2])
+            pourcentage.append((row / idx[2]) * 100)
+
+    my_dict['region'] = region
+    my_dict['population_region'] = population_region
+    my_dict['pourcentage_' + col_choice] = pourcentage
+    
+    return pd.DataFrame.from_dict(my_dict)
+    
